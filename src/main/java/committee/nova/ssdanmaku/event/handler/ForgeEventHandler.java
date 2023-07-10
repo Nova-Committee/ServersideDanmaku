@@ -14,6 +14,7 @@ import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.server.ServerLifecycleHooks;
 import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 
 @Mod.EventBusSubscriber
@@ -32,7 +33,7 @@ public class ForgeEventHandler {
     public static void onDanmakuReceived(SendDanmakuEvent event) {
         final String msg = event.getMessage();
         if (msg.replace(" ", "").replace("\n", "").replace("\r", "").isEmpty()) return;
-        final MinecraftServer server = ServersideDanmaku.getServer();
+        final MinecraftServer server = ServerLifecycleHooks.getCurrentServer();
         if (server == null) return;
         server.getPlayerList().broadcastSystemMessage(Component.literal(event.getMessage()), false);
     }
