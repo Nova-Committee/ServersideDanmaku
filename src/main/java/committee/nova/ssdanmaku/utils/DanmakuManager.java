@@ -6,8 +6,8 @@ import committee.nova.ssdanmaku.websocket.WebSocketClient;
 
 import static committee.nova.ssdanmaku.config.ConfigManger.getBilibiliConfig;
 
-public class OpenCloseDanmaku {
-    public static void openDanmaku() {
+public class DanmakuManager {
+    public static void start() {
         BilibiliSite site = new BilibiliSite(getBilibiliConfig());
         if (site.getConfig().getRoom().isEnable()) {
             ServersideDanmaku.WEBSOCKET_CLIENT = new WebSocketClient(site);
@@ -20,7 +20,7 @@ public class OpenCloseDanmaku {
         }
     }
 
-    public static void closeDanmaku() {
+    public static void stop() {
         if (ServersideDanmaku.WEBSOCKET_CLIENT == null) {
             return;
         }

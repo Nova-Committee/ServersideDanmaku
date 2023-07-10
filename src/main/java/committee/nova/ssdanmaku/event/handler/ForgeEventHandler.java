@@ -1,11 +1,11 @@
-package committee.nova.ssdanmaku.event;
+package committee.nova.ssdanmaku.event.handler;
 
 import com.mojang.brigadier.arguments.LongArgumentType;
 import committee.nova.ssdanmaku.ServersideDanmaku;
 import committee.nova.ssdanmaku.config.BilibiliConfig;
 import committee.nova.ssdanmaku.config.ConfigManger;
 import committee.nova.ssdanmaku.event.post.SendDanmakuEvent;
-import committee.nova.ssdanmaku.utils.OpenCloseDanmaku;
+import committee.nova.ssdanmaku.utils.DanmakuManager;
 import net.minecraft.commands.Commands;
 import net.minecraft.network.chat.Component;
 import net.minecraft.server.MinecraftServer;
@@ -14,17 +14,18 @@ import net.minecraftforge.event.server.ServerStartedEvent;
 import net.minecraftforge.event.server.ServerStoppedEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import net.minecraftforge.fml.common.Mod;
+import net.minecraftforge.server.permission.events.PermissionGatherEvent;
 
 @Mod.EventBusSubscriber
 public class ForgeEventHandler {
     @SubscribeEvent
     public static void onServerStarted(ServerStartedEvent event) {
-        OpenCloseDanmaku.openDanmaku();
+        DanmakuManager.start();
     }
 
     @SubscribeEvent
     public static void onServerStopped(ServerStoppedEvent event) {
-        OpenCloseDanmaku.closeDanmaku();
+        DanmakuManager.stop();
     }
 
     @SubscribeEvent
@@ -41,12 +42,12 @@ public class ForgeEventHandler {
         event.getDispatcher().register(Commands.literal("ssdanmaku")
                 .then(Commands.literal("reload")
                         .executes(ctx -> {
-                            OpenCloseDanmaku.closeDanmaku();
+                            DanmakuManager.stop();
                             ctx.getSource().sendSuccess(() -> Component.literal("弹幕配置重载中..."), false);
-                            OpenCloseDanmaku.openDanmaku();
+                            DanmakuManager.start();
                             return 1;
                         })
-                        .requires(p -> p.hasPermission(p.getServer().getOperatorUserPermissionLevel())))
+                        .requires(ServersideDanmaku::checkSSDanmakuAdminPerm))
                 .then(Commands.literal("setroom")
                         .then(Commands.argument("room_id", LongArgumentType.longArg())
                                 .executes(ctx -> {
@@ -58,8 +59,13 @@ public class ForgeEventHandler {
                                     ctx.getSource().sendSuccess(() -> Component.literal("房间号被设置为：" + id), false);
                                     return 1;
                                 })
-                                .requires(p -> p.hasPermission(p.getServer().getOperatorUserPermissionLevel())))
-                        .requires(p -> p.hasPermission(p.getServer().getOperatorUserPermissionLevel())))
-                .requires(p -> p.hasPermission(p.getServer().getOperatorUserPermissionLevel())));
+                                .requires(ServersideDanmaku::checkSSDanmakuAdminPerm))
+                        .requires(ServersideDanmaku::checkSSDanmakuAdminPerm))
+                .requires(ServersideDanmaku::checkSSDanmakuAdminPerm));
+    }
+
+    @SubscribeEvent
+    public static void onAddNode(PermissionGatherEvent.Nodes event) {
+        event.addNodes(ServersideDanmaku.SSDANMAKU_ADMIN);
     }
 }
